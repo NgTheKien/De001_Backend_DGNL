@@ -1,5 +1,6 @@
 -- Lược đồ CSDL CinemaBox (H2 chế độ MySQL). Chạy lại mỗi lần ứng dụng khởi động.
 -- Tầng Junior được thêm ràng buộc hoặc cột có giá trị mặc định; không đổi tên, không xoá bảng và cột có sẵn.
+
 DROP TABLE IF EXISTS bookings CASCADE;
 DROP TABLE IF EXISTS showtimes CASCADE;
 DROP TABLE IF EXISTS customers CASCADE;
@@ -29,7 +30,9 @@ CREATE TABLE showtimes (
     price           BIGINT    NOT NULL,
     available_seats INT       NOT NULL,
     CONSTRAINT fk_showtimes_movie FOREIGN KEY (movie_id) REFERENCES movies (id),
-    CONSTRAINT fk_showtimes_room  FOREIGN KEY (room_id)  REFERENCES rooms (id)
+    CONSTRAINT fk_showtimes_room  FOREIGN KEY (room_id)  REFERENCES rooms (id),
+    -- Mục 4.3.4b: DB tự chặn số ghế âm, kể cả khi code có lỗi
+    CONSTRAINT ck_showtimes_available_seats CHECK (available_seats >= 0)
 );
 
 CREATE TABLE customers (

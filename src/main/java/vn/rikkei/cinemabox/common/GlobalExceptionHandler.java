@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import vn.rikkei.cinemabox.payment.PaymentFailedException;
 
 /**
  * Xử lý lỗi tập trung: chuyển exception thành ApiError.
@@ -84,7 +85,23 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.CONFLICT, "CONFLICT", ex.getMessage(), req, List.of());
     }
 
-    /** Lưới an toàn khi DB từ chối do vi phạm UNIQUE (hai request tạo cùng email đồng thời). */
+    @ExceptionHandler(NotEnoughSeatsException.class)
+    public ResponseEntity<ApiError> handleNotEnoughSeats(NotEnoughSeatsException ex, HttpServletRequest req) {
+        return build(HttpStatus.CONFLICT, "NOT_ENOUGH_SEATS", ex.getMessage(), req, List.of());
+    }
+
+    @ExceptionHandler(InvalidStateException.class)
+    public ResponseEntity<ApiError> handleInvalidState(InvalidStateException ex, HttpServletRequest req) {
+        return build(HttpStatus.CONFLICT, "INVALID_STATE", ex.getMessage(), req, List.of());
+    }
+
+    /** Cổng thanh toán từ chối. Transaction đặt vé đã rollback trước khi tới đây. */
+    @ExceptionHandler(PaymentFailedException.class)
+    public ResponseEntity<ApiError> handlePaymentFailed(PaymentFailedException ex, HttpServletRequest req) {
+        return build(HttpStatus.PAYMENT_REQUIRED, "PAYMENT_FAILED", ex.getMessage(), req, List.of());
+    }
+
+    /** Lưới an toàn khi DB từ chối do vi phạm ràng buộc (UNIQUE email, CHECK số ghế). */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest req) {
         return build(HttpStatus.CONFLICT, "CONFLICT", "Dữ liệu bị trùng hoặc vi phạm ràng buộc", req, List.of());
